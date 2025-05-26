@@ -1,0 +1,16 @@
+/* style.css */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Ensure full viewport height */
+    margin: 0;
+    background-color: #f0f0f0; /* Light gray background for the page */
+    font-family: sans-serif;
+}
+
+canvas#dinoCanvas {
+    border: 2px solid #333; /* Dark border for the canvas */
+    background-color: #ffffff; /* White background for the canvas itself */
+    box-shadow: 5px 5px 10px rgba(0,0,0,0.1); /* Subtle shadow for a bit of depth */
+}
