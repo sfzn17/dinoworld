@@ -3,10 +3,19 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column; /* Stack items vertically */
     min-height: 100vh; /* Ensure full viewport height */
     margin: 0;
     background-color: #f0f0f0; /* Light gray background for the page */
     font-family: sans-serif;
+}
+
+h1 {
+    text-align: center; /* This will be redundant if body is flex and align-items center, but good for clarity */
+    font-family: 'Verdana', sans-serif; /* Changed to Verdana for variety */
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+    color: #2c3e50; /* A slightly different shade of dark gray/blue */
 }
 
 canvas#dinoCanvas {
