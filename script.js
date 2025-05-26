@@ -1,4 +1,34 @@
 // script.js
+
+const dinosaurSpecies = [
+    { name: "Allosaurus", imageSrc: "PLACEHOLDER_A" },
+    { name: "Brachiosaurus", imageSrc: "PLACEHOLDER_B" },
+    { name: "Compsognathus", imageSrc: "PLACEHOLDER_C" },
+    { name: "Dilophosaurus", imageSrc: "PLACEHOLDER_D" },
+    { name: "Edmontosaurus", imageSrc: "PLACEHOLDER_E" },
+    { name: "Fabrosaurus", imageSrc: "PLACEHOLDER_F" },
+    { name: "Gallimimus", imageSrc: "PLACEHOLDER_G" },
+    { name: "Hadrosaurus", imageSrc: "PLACEHOLDER_H" },
+    { name: "Iguanodon", imageSrc: "PLACEHOLDER_I" },
+    { name: "Jaxartosaurus", imageSrc: "PLACEHOLDER_J" },
+    { name: "Kentrosaurus", imageSrc: "PLACEHOLDER_K" },
+    { name: "Lambeosaurus", imageSrc: "PLACEHOLDER_L" },
+    { name: "Megalosaurus", imageSrc: "PLACEHOLDER_M" },
+    { name: "Nodosaurus", imageSrc: "PLACEHOLDER_N" },
+    { name: "Ornithomimus", imageSrc: "PLACEHOLDER_O" },
+    { name: "Pachycephalosaurus", imageSrc: "PLACEHOLDER_P" },
+    { name: "Quaesitosaurus", imageSrc: "PLACEHOLDER_Q" },
+    { name: "Rhabdodon", imageSrc: "PLACEHOLDER_R" },
+    { name: "Stegosaurus", imageSrc: "PLACEHOLDER_S" },
+    { name: "Triceratops", imageSrc: "PLACEHOLDER_T" },
+    { name: "Utahraptor", imageSrc: "PLACEHOLDER_U" },
+    { name: "Velociraptor", imageSrc: "PLACEHOLDER_V" },
+    { name: "Wuerhosaurus", imageSrc: "PLACEHOLDER_W" },
+    { name: "Xenotarsosaurus", imageSrc: "PLACEHOLDER_X" },
+    { name: "Yinlong", imageSrc: "PLACEHOLDER_Y" },
+    { name: "Zuniceratops", imageSrc: "PLACEHOLDER_Z" }
+];
+
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('dinoCanvas');
     const ctx = canvas.getContext('2d');
@@ -10,21 +40,80 @@ document.addEventListener('DOMContentLoaded', () => {
     let dinosaurs = [];
 
     class Dinosaur {
-        constructor(x, y, width, height, color) {
+        constructor(x, y, width, height, color, speciesIndex) {
             this.x = x;
             this.y = y;
             this.width = width;
             this.height = height;
-            this.color = color;
-            this.dx = (Math.random() * 2 - 1) * 0.5; // Initial random speed between -0.5 and 0.5
-            this.dy = (Math.random() * 2 - 1) * 0.5; // Initial random speed between -0.5 and 0.5
+            this.color = color; // Used for placeholder background or if image fails
+            this.dx = (Math.random() * 2 - 1) * 0.5; // Initial random speed
+            this.dy = (Math.random() * 2 - 1) * 0.5; // Initial random speed
             this.isPaused = false;
             this.pauseEndTime = 0;
+
+            this.currentSpeciesIndex = speciesIndex;
+            this.speciesName = dinosaurSpecies[speciesIndex].name;
+            this.imageSrc = dinosaurSpecies[speciesIndex].imageSrc;
+            this.isPlaceholder = this.imageSrc.startsWith("PLACEHOLDER_");
+            this.image = new Image();
+            this.imageLoaded = false;
+
+            if (!this.isPlaceholder) {
+                this.image.onload = () => { this.imageLoaded = true; };
+                this.image.onerror = () => { 
+                    this.isPlaceholder = true; // Fallback to placeholder on error
+                    console.error('Failed to load image:', this.imageSrc); 
+                };
+                this.image.src = this.imageSrc;
+            }
         }
 
         draw() {
-            ctx.fillStyle = this.color;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+            if (this.isPlaceholder) {
+                // Draw placeholder rectangle
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                // Draw placeholder letter
+                const letter = this.imageSrc.split('_')[1];
+                ctx.fillStyle = 'black';
+                ctx.font = Math.min(this.width, this.height) * 0.7 + 'px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(letter, this.x + this.width / 2, this.y + this.height / 2);
+            } else if (this.imageLoaded) {
+                // Draw the loaded image
+                ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+            } else {
+                // Fallback: Still loading or failed, draw colored rectangle
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            // Draw the species name below the dinosaur
+            ctx.fillStyle = 'black';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(this.speciesName, this.x + this.width / 2, this.y + this.height + 5);
+        }
+        
+        changeSpecies(newSpeciesIndex) {
+            this.currentSpeciesIndex = newSpeciesIndex;
+            const newSpecies = dinosaurSpecies[newSpeciesIndex];
+            this.speciesName = newSpecies.name;
+            this.imageSrc = newSpecies.imageSrc;
+            this.isPlaceholder = this.imageSrc.startsWith("PLACEHOLDER_");
+            this.imageLoaded = false; // Reset loading flag
+
+            if (!this.isPlaceholder) {
+                this.image.onload = () => { this.imageLoaded = true; };
+                this.image.onerror = () => {
+                    this.isPlaceholder = true; // Fallback to placeholder
+                    this.imageLoaded = false; // Ensure it's marked as not loaded
+                    console.error('Failed to load image for new species:', this.imageSrc);
+                };
+                this.image.src = this.imageSrc;
+            }
         }
 
         update() {
@@ -93,7 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const y = Math.random() * (canvas.height - height - 2 * margin) + margin;
 
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            dinosaurs.push(new Dinosaur(x, y, width, height, randomColor));
+            const speciesIndex = i % dinosaurSpecies.length; // Cycle through species
+            dinosaurs.push(new Dinosaur(x, y, width, height, randomColor, speciesIndex));
         }
     }
 
@@ -113,4 +203,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize dinosaurs and start the animation loop
     initDinos();
     gameLoop();
+
+    canvas.addEventListener('click', function(event) {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
+
+        dinosaurs.forEach(dino => {
+            if (clickX >= dino.x && clickX <= dino.x + dino.width &&
+                clickY >= dino.y && clickY <= dino.y + dino.height) {
+                
+                let newSpeciesIndex;
+                if (dinosaurSpecies.length > 1) {
+                    do {
+                        newSpeciesIndex = Math.floor(Math.random() * dinosaurSpecies.length);
+                    } while (newSpeciesIndex === dino.currentSpeciesIndex);
+                    dino.changeSpecies(newSpeciesIndex);
+                }
+                // If only one species type, no change will occur.
+            }
+        });
+    });
 });
